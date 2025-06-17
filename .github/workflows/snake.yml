@@ -1,40 +1,31 @@
-name: Generate and Commit Snake Animation
+name: Generate Long Snake
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # 每天 UTC 0 点自动运行
-  workflow_dispatch:     # 允许手动触发
+    - cron: '0 0 * * *'  # 每天自动更新
+  workflow_dispatch:
 
 jobs:
   generate:
     runs-on: ubuntu-latest
     steps:
-      # 1. 检出代码（必须保留认证信息）
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 需要完整 git 历史记录
-          persist-credentials: true  # 关键配置！保留推送权限
+          fetch-depth: 0
 
-      # 2. 生成 Snake 动画
-      - name: Generate snake
+      - name: Generate 1-year snake
         uses: Platane/snk@v3
         with:
           github_user_name: zzgs219G
+          gits_fetch_options: "--depth=365"
+          snake_size: "large"
           outputs: |
-            assets/snake-white.svg?palette=github-light
+            assets/snake.svg
             assets/snake-dark.svg?palette=github-dark
 
-      # 3. 提交文件（100% 有效的 HTTPS 方案）
-      - name: Commit and push
+      - name: Commit
         run: |
-          # 配置 Git 用户
           git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          
-          # 添加并提交文件
           git add assets/
-          git commit -m "Auto-update snake animation [skip ci]" || exit 0
-          
-          # 使用 GITHUB_TOKEN 推送
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
+          git commit -m "Update year-long snake" || exit 0
+          git push https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
