@@ -1,20 +1,19 @@
-name: Generate and Commit Snake Animation
+name: Generate Snake
 
 on:
   schedule:
-    - cron: '0 0 * * *' # 每天 UTC 时间 0 点运行
-  workflow_dispatch: # 允许手动触发
+    - cron: '0 0 * * *'  # 每天UTC时间0点运行
+  workflow_dispatch:      # 允许手动触发
 
 jobs:
   generate:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # 需要完整的 git 历史记录
+          fetch-depth: 0  # 需要完整的git历史
 
-      - name: Generate snake animation
+      - name: Generate snake
         uses: Platane/snk@v3
         with:
           github_user_name: zzgs219G
@@ -27,7 +26,7 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git add assets/*
-          git commit -m "Add generated snake SVG" || echo "No changes to commit"
-          git push
+          git commit -m "Add generated snake SVG [skip ci]" || exit 0
+          git push origin HEAD:main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
