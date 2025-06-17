@@ -13,3 +13,20 @@ jobs:
           outputs: |
             assets/snake-white.svg?palette=github-light  # 白色版
             assets/snake-dark.svg?palette=github-dark    # 黑色版（可选）
+- name: Generate snake animation
+  uses: Platane/snk@v3
+  with:
+    github_user_name: zzgs219G
+    outputs: |
+      assets/snake-white.svg?palette=github-light
+      assets/snake-dark.svg?palette=github-dark
+
+- name: Commit files
+  run: |
+    git config --global user.name "GitHub Actions"
+    git config --global user.email "actions@github.com"
+    git add assets/*
+    git commit -m "Add generated snake SVG" || echo "No changes to commit"
+    git push
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
