@@ -1,19 +1,39 @@
-uses: Platane/snk@v3
-  with:
-    # github user name to read the contribution graph from (**required**)
-    # using action context var `github.repository_owner` or specified user
-    github_user_name: ${{ gaearon }}
+name: Generate Mega Snake
 
-    # list of files to generate.
-    # one file per line. Each output can be customized with options as query string.
-    #
-    #  supported options:
-    #  - palette:     A preset of color, one of [github, github-dark, github-light]
-    #  - color_snake: Color of the snake
-    #  - color_dots:  Coma separated list of dots color.
-    #                 The first one is 0 contribution, then it goes from the low contribution to the highest.
-    #                 Exactly 5 colors are expected.
-   outputs: |
-      dist/github-snake.svg
-      dist/github-snake-dark.svg?palette=github-dark
-      dist/ocean.gif?color_snake=orange&color_dots=#bfd6f6,#8dbdff,#64a1f4,#4b91f1,#3c7dd9
+on:
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate Snake
+        uses: Platane/snk@v3
+        with:
+          github_user_name: gaerron
+          gits_fetch_options: "--deepen=2000"
+          snake_density: 1
+          snake_size: "xxl"
+          outputs: |
+            assets/mega-snake.svg
+
+      - name: Commit with LFS
+        run: |
+          # 必须重新配置用户（防止某些环境丢失配置）
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+
+          # 初始化 LFS
+          git lfs install
+          git lfs track "assets/*.svg"
+          
+          # 提交
+          git add .gitattributes assets/
+          git commit -m "Add 100KB mega snake [skip ci]" || exit 0
+          
+          # 使用 Token 推送
+          git push https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
