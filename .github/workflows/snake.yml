@@ -1,9 +1,7 @@
-name: Generate Long Snake
+name: Generate Mega Snake
 
 on:
-  schedule:
-    - cron: '0 0 * * *'  # 每天自动更新
-  workflow_dispatch:
+  workflow_dispatch:  # 手动触发（避免频繁跑长任务）
 
 jobs:
   generate:
@@ -11,21 +9,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # 必须！
 
-      - name: Generate 1-year snake
+      - name: Generate 100KB+ Snake
         uses: Platane/snk@v3
+        env:
+          GH_TOKEN: ${{ secrets.PAT }}  # 使用高限额Token
         with:
           github_user_name: zzgs219G
-          gits_fetch_options: "--depth=365"
-          snake_size: "large"
+          gits_fetch_options: "--deepen=2000 --unshallow"
+          snake_density: 1
+          snake_size: "xxl"
+          snake_type: "gatsby"
           outputs: |
-            assets/snake.svg
-            assets/snake-dark.svg?palette=github-dark
+            assets/mega-snake.svg
+            assets/mega-snake-dark.svg?palette=github-dark
 
       - name: Commit
         run: |
-          git config --global user.name "GitHub Actions"
-          git add assets/
-          git commit -m "Update year-long snake" || exit 0
-          git push https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
+          git lfs install
+          git lfs track "assets/*.svg"
+          git add .gitattributes assets/
+          git commit -m "Add 100KB mega snake" 
+          git push origin HEAD:main
